@@ -4,12 +4,12 @@
   box-sizing: border-box;
 }
 .container {
-  width: 402px;
-  height: 402px;
+  width: 418px;
+  height: 418px;
   position: absolute;
   top: 50%;
   left: 50%;
-  margin: -200px 0 0 -200px;
+  margin: -209px 0 0 -209px;
   border: 1px solid #000;
 }
 .container__item {
@@ -17,11 +17,18 @@
   height: 100px;
   text-align: center;
   font: 50px/100px Arial, sans-serif;
-  cursor: pointer;
   border: 1px solid #000;
+  margin: 2px;
   float: left;
   position: relative;
+  cursor: pointer;
 }
 .container__item:hover {
   background: #e6e6e6;
+}
+.container__item.empty {
+  cursor: default;
+}
+.container__item.empty:hover {
+  background: none;
 }
