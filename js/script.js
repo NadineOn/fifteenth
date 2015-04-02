@@ -2,12 +2,21 @@ var AppNS = {};
 
 (function($, undefined){
 
+    var position = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,''],
+    $counterMoves = $('.page__moves span'),
+    $container = $('.page__container'),
+    $timeEl = $('.page__timer span'),
+    flag = true,
+    moves = 0,
+    period;
+
     AppNS.init = function() {
-        var position = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,''];
-        AppNS.newGame(position);
-        window.addEventListener('keydown', AppNS.keyboardEvent, false);
-        $('#new-game').on('click', function() { AppNS.newGame(position) });
-        $('.container').on('click', '.container__item', function(){
+        AppNS.newGame();
+        $(window).on('keydown', AppNS.keyboardEvent);
+        $('.page__start').on('click', function() {
+            AppNS.newGame();
+        });
+        $container.on('click', '.container__item', function(){
             var $el = $(this);
             var emptyPos = $('.empty').data('position');
             var thisPos = $el.data('position');
@@ -16,11 +25,10 @@ var AppNS = {};
             AppNS.moveLeft(thisPos, emptyPos, thisVal, $el);
             AppNS.moveTop(thisPos, emptyPos, thisVal, $el);
             AppNS.moveBottom(thisPos, emptyPos, thisVal, $el);
-            AppNS.checkWinner();
         })
     };
 
-    AppNS.mixItems = function(position) {
+    AppNS.mixItems = function() {
         function random(min, max) {
             var range = max - min + 1;
             return Math.floor(Math.random()*range) + min;
@@ -35,19 +43,23 @@ var AppNS = {};
         return position;
     }
 
-    AppNS.setPositions = function (position) {
-        var $container = $('.container').empty();
-        var emptyCell;
+    AppNS.setPositions = function () {
+        $container.empty();
+        var emptyClass;
         for (var i=0; i<position.length; i++) {
-            (position[i] == '') ? emptyCell = ' empty' : emptyCell = '';
-            var contentHtml = '<div class="container__item'+emptyCell+'" data-position="'+(i+1)+'">'+position[i]+'</div>';
-            $container.append(contentHtml)
+            (position[i] === '') ? emptyClass = ' empty' : emptyClass = '';
+            var contentHtml = '<div class="container__item'+emptyClass+'" data-position="'+(i+1)+'">'+position[i]+'</div>';
+            $container.append(contentHtml);
         }
     }
 
-    AppNS.newGame = function(position) {
-        AppNS.mixItems(position);
-        AppNS.setPositions(position);
+    AppNS.newGame = function() {
+        AppNS.timer(false);
+        AppNS.mixItems();
+        AppNS.setPositions();
+        moves = 0;
+        $counterMoves.html(moves);
+        flag = true;
     }
 
     AppNS.moveRight = function(thisPos, emptyPos, thisVal, $el) {
@@ -85,6 +97,11 @@ var AppNS = {};
     AppNS.replaceCells = function(thisVal, $el) {
         $('.empty').removeClass('empty').html(thisVal);
         $el.addClass('empty').empty();
+        AppNS.checkWinner();
+        moves++;
+        $counterMoves.html(moves);
+        if (flag) AppNS.timer(true);
+        flag = false;
     }
 
     AppNS.keyboardEvent = function(e) {
@@ -97,35 +114,37 @@ var AppNS = {};
     }
 
     AppNS.key = function ( type ) {
-        var $newEl;
+        var newPos;
         var emptyPos = $('.empty').data('position');
         switch (type) {
             case 'up':
                 if (emptyPos != 1 && emptyPos != 2 && emptyPos != 3 && emptyPos!= 4 ) {
-                    $newEl = $('.container__item[data-position="'+(emptyPos-4)+'"]');
+                    newPos = emptyPos-4;
                 }
                 break;
             case 'down':
                 if (emptyPos != 13 && emptyPos != 14 && emptyPos != 15 && emptyPos!= 16 ) {
-                    $newEl = $('.container__item[data-position="'+(emptyPos+4)+'"]');
+                    newPos = emptyPos+4;
                 }
                 break;
             case 'left':
                 if (emptyPos != 1 && emptyPos != 5 && emptyPos != 9 && emptyPos!= 13 ) {
-                    $newEl = $('.container__item[data-position="'+(emptyPos-1)+'"]');
+                    newPos = emptyPos-1;
                 }
                 break;
             case 'right':
                 if (emptyPos != 4 && emptyPos != 8 && emptyPos != 12 && emptyPos!= 16 ) {
-                    $newEl = $('.container__item[data-position="'+(emptyPos+1)+'"]');
+                    newPos = emptyPos+1;
                 }
                 break;
         }
-        var thisVal = $newEl.html();
-        AppNS.replaceCells(thisVal, $newEl);
-        AppNS.checkWinner();
-
+        if (newPos) {
+            var $newEl = $('.container__item[data-position="'+newPos+'"]');
+            var thisVal = $newEl.html();
+            AppNS.replaceCells(thisVal, $newEl);
+        }
     }
+
 
     AppNS.checkWinner = function() {
         var correctCell = 0;
@@ -136,6 +155,32 @@ var AppNS = {};
             }
         })
         if (correctCell == 15) alert('You won!');
+    }
+
+    AppNS.timer = function(val) {
+        var timer = 0,
+            hours = 0,
+            minutes = 0,
+            seconds = 0;
+
+        function countTime(){
+            ++timer;
+            hours   = Math.floor(timer / 3600);
+            minutes = Math.floor((timer - hours * 3600) / 60);
+            seconds = timer - hours * 3600 - minutes * 60;
+            if (hours < 10) hours = '0' + hours;
+            if (minutes < 10) minutes = '0' + minutes;
+            if (seconds < 10) seconds = '0' + seconds;
+            $timeEl.html(hours + ':' + minutes + ':' + seconds);
+        }
+
+        if (val) {
+            countTime();
+            period = setInterval(countTime, 1000);
+        } else {
+            clearInterval(period);
+            $timeEl.html('00:00:00');
+        }
     }
 
     $(AppNS.init);
